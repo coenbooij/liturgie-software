@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <title>Liturgie</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="liturgie-container">
+    <div id="liturgie" class="liturgie-tekst">
+      Liturgie wordt geladen...
+    </div>
+  </div>
+
+  <script>
+    async function laadLiturgie() {
+      try {
+        const res = await fetch("/api/get-liturgie");
+        const data = await res.json();
+        const el = document.getElementById("liturgie");
+        el.textContent = data.tekst || "Geen liturgie ingesteld.";
+      } catch (err) {
+        console.error(err);
+        document.getElementById("liturgie").textContent =
+          "Fout bij laden van de liturgie.";
+      }
+    }
+
+    laadLiturgie();
+
+    setInterval(laadLiturgie, 10000);
+  </script>
+<!-- DEV ONLY: Auto-reload every 5 seconds. Remove this block when done developing. -->
+<script>
+  setInterval(() => window.location.reload(), 5000);
+</script>
+</body>
+</html>

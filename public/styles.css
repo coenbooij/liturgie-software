@@ -1,0 +1,225 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #000;
+  color: #fff;
+  overflow: hidden;
+}
+#wrapper {
+  margin: 0 auto;
+  max-width: 100vh;
+  background-color: red;
+}
+
+.liturgie-container {
+  width: 100vw;
+  height: 100vh;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: rotate(90deg);
+  transform-origin: center center;
+  overflow: visible;
+}
+
+
+.liturgie-tekst {
+  font-size: 100px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  max-width: 80vh;
+  text-align: left;
+  align-self: center;
+  margin: 0;
+  padding: 0;
+}
+
+.dashboard-body {
+  background: #111;
+  color: #fff;
+}
+
+.dashboard-container {
+  max-width: 420px;
+  margin: 32px auto;
+  padding: 18px;
+  background: #181818;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.dashboard-header {
+  margin-bottom: 0;
+}
+
+.dashboard-header h1 {
+  margin-top: 0;
+  font-size: 2em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.dashboard-header p {
+  margin: 0 0 18px 0;
+  font-size: 1.1em;
+  color: #ccc;
+}
+
+.dashboard-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dashboard-form label {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.dashboard-form textarea {
+  width: 100%;
+  min-height: 220px;
+  resize: vertical;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background: #000;
+  color: #fff;
+  font-family: monospace;
+  font-size: 15px;
+  box-sizing: border-box;
+}
+
+.dashboard-form button {
+  margin-top: 10px;
+  padding: 12px 0;
+  border-radius: 6px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 17px;
+  width: 100%;
+  transition: background 0.2s;
+}
+
+.dashboard-form button:hover {
+  background: #1d4ed8;
+}
+
+.save-status {
+  margin-top: 8px;
+  font-size: 15px;
+  color: #90ee90;
+}
+
+@media (max-width: 600px) {
+  .dashboard-container {
+    max-width: 100%;
+    margin: 8px;
+    padding: 8px;
+    box-shadow: none;
+    border-radius: 0;
+  }
+  .dashboard-header h1 {
+    font-size: 1.2em;
+    margin-bottom: 8px;
+  }
+  .dashboard-header p {
+    font-size: 1em;
+    margin-bottom: 16px;
+  }
+  .dashboard-form label {
+    font-size: 1em;
+    margin-bottom: 6px;
+  }
+  .dashboard-form textarea {
+    min-height: 120px;
+    font-size: 14px;
+    padding: 8px;
+    border-radius: 4px;
+  }
+  .dashboard-form button {
+    width: 100%;
+    padding: 12px 0;
+    font-size: 16px;
+    margin-top: 12px;
+    border-radius: 4px;
+  }
+  .save-status {
+    font-size: 13px;
+    margin-top: 8px;
+  }
+}
+
+.dashboard-container h1 {
+  margin-top: 0;
+}
+
+.dashboard-container label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.dashboard-container textarea {
+  width: 100%;
+  min-height: 400px;
+  resize: vertical;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background: #000;
+  color: #fff;
+  font-family: monospace;
+  font-size: 14px;
+}
+
+/* Consolidated button styles */
+.dashboard-container button,
+.dashboard-form button {
+  margin-top: 10px;
+  padding: 12px 0;
+  border-radius: 6px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 17px;
+  width: 100%;
+  transition: background 0.2s;
+}
+
+.dashboard-container button:hover,
+.dashboard-form button:hover {
+  background: #1d4ed8;
+}
+
+.save-status {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+
+
+/* Removed duplicate body rule */
+#wrapper {
+  margin: 0 auto;
+  max-width: 100vh;
+  background-color: red;
+}

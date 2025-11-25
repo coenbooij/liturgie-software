@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta name="theme-color" content="#3367D6">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png">
+  <meta charset="UTF-8" />
+  <title>Startscherm</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body class="dashboard-body">
+  <div class="dashboard-container">
+    <h1>Liturgie Software</h1>
+    <p>
+      Welkom! Kies hieronder waar je naartoe wilt gaan.
+    </p>
+    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+      <a href="/liturgie/index.html" class="button-link">Ga naar Liturgie</a>
+      <a href="/dashboard/index.html" class="button-link">Ga naar Dashboard</a>
+    </div>
+  </div>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js');
+      });
+    }
+  </script>
+</body>
+</html>
