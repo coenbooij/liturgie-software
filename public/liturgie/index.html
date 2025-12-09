@@ -2,12 +2,12 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
-  <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0" /> -->
   <title>Liturgie</title>
   <link rel="stylesheet" href="/styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+</head>
 <body>
   <div class="liturgie-container">
     <div id="liturgie" class="liturgie-tekst">
@@ -16,41 +16,6 @@
   </div>
 
   <script>
-    function splitLineIntoChunks(line, maxCharsPerLine) {
-      if (line.length <= maxCharsPerLine) {
-        return [line];
-      }
-      
-      const chunks = [];
-      let currentChunk = '';
-      const words = line.split(' ');
-      
-      for (const word of words) {
-        if ((currentChunk + ' ' + word).trim().length <= maxCharsPerLine) {
-          currentChunk = currentChunk ? currentChunk + ' ' + word : word;
-        } else {
-          if (currentChunk) {
-            chunks.push(currentChunk);
-          }
-          // If a single word is longer than maxCharsPerLine, split it
-          if (word.length > maxCharsPerLine) {
-            for (let i = 0; i < word.length; i += maxCharsPerLine) {
-              chunks.push(word.slice(i, i + maxCharsPerLine));
-            }
-            currentChunk = '';
-          } else {
-            currentChunk = word;
-          }
-        }
-      }
-      
-      if (currentChunk) {
-        chunks.push(currentChunk);
-      }
-      
-      return chunks;
-    }
-
     async function laadLiturgie() {
       try {
         const res = await fetch("/api/get-liturgie");
@@ -58,28 +23,24 @@
         const el = document.getElementById("liturgie");
         const tekst = data.tekst || "Geen liturgie ingesteld.";
         
-        // Estimate characters per line based on container width
-        // Adjust this value based on your font size and letter-block spacing
-        const maxCharsPerLine = 21; // Approximate, adjust as needed
-        
-        // Split text into lines and then split long lines into chunks
-        const textLines = tekst.split('\n').flatMap(line => {
+        // Split text into lines and render each as a liturgie-line
+        const textLines = tekst.split('\n').map(line => {
           if (line.trim() === "") {
-            return ['&nbsp;'];
+            return '<div class="liturgie-line">&nbsp;</div>';
           }
           
-          const chunks = splitLineIntoChunks(line, maxCharsPerLine);
-          return chunks.map(chunk => 
-            Array.from(chunk).map(char =>
-              char === " "
-                ? " "
-                : `<span class="letter-block">${char}</span>`
-            ).join("")
-          );
-        }).map(content => `<div class="liturgie-line">${content}</div>`);
+          // Wrap each character in a letter-block span, including spaces
+          const content = Array.from(line).map(char =>
+            char === " "
+              ? `<span class="letter-block space"> </span>`
+              : `<span class="letter-block">${char}</span>`
+          ).join("");
+          
+          return `<div class="liturgie-line">${content}</div>`;
+        });
         
         // Calculate how many empty lines are needed to fill the viewport
-        const lineHeight = 120 + 7; // min-height + border-bottom (0.7rem = ~7px)
+        const lineHeight = 120 + 7; // min-height + border-bottom
         const viewportHeight = window.innerHeight;
         const contentHeight = textLines.length * lineHeight;
         const emptyLinesNeeded = Math.max(0, Math.ceil((viewportHeight - contentHeight) / lineHeight));
@@ -100,8 +61,8 @@
     setInterval(laadLiturgie, 10000);
   </script>
   <!-- STRAKS WEGHALEN!! -->
-<script>
-  setInterval(() => window.location.reload(), 5000);
-</script>
+  <!-- <script>
+    setInterval(() => window.location.reload(), 5000);
+  </script> -->
 </body>
 </html>
