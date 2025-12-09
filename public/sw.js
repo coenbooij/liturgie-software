@@ -1,5 +1,3 @@
-// Simple service worker for Liturgie Software PWA
-
 const CACHE_NAME = 'liturgie-cache-v1';
 const urlsToCache = [
   '/index.html',
