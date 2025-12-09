@@ -29,12 +29,15 @@
             return '<div class="liturgie-line">&nbsp;</div>';
           }
           
-          // Wrap each character in a letter-block span, including spaces
-          const content = Array.from(line).map(char =>
-            char === " "
-              ? `<span class="letter-block space"> </span>`
-              : `<span class="letter-block">${char}</span>`
-          ).join("");
+          const content = Array.from(line).map(char => {
+            if (char === " ") {
+              return `<span class="letter-block space"> </span>`;
+            } else if (char === ":") {
+              return `<span class="letter-block semicolon">:</span>`;
+            } else {
+              return `<span class="letter-block">${char}</span>`;
+            }
+          }).join("");
           
           return `<div class="liturgie-line">${content}</div>`;
         });

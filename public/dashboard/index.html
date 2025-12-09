@@ -138,10 +138,18 @@
           }
         }
         
-        // Only skip lines that are completely empty (not even spaces)
-        if (lineText !== '' && lineText !== '\u00A0') {
+        // Treat lines with only whitespace (including nbsp) as empty lines
+        // This preserves empty lines when saving
+        if (lineText.trim() === '') {
+          textLines.push('');
+        } else {
           textLines.push(lineText);
         }
+      }
+      
+      // Remove trailing empty lines that are just viewport fillers
+      while (textLines.length > 0 && textLines[textLines.length - 1] === '') {
+        textLines.pop();
       }
       
       return textLines.join('\n');

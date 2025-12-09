@@ -69,6 +69,11 @@ body {
   width: 25px;        
 }
 
+.letter-block.semicolon {
+  padding: 0px;
+  width: 65px; 
+}
+
 .dashboard-body {
   background: #111;
   color: #fff;
