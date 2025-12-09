@@ -2,9 +2,7 @@ const CACHE_NAME = 'liturgie-cache-v1';
 const urlsToCache = [
   '/index.html',
   '/manifest.json',
-  '/styles.css',
-  '/icon-192.png',
-  '/icon-512.png'
+  '/styles.css'
 ];
 
 self.addEventListener('install', event => {

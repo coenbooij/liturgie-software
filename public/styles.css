@@ -1,17 +1,11 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Urbanist", sans-serif;  
   background: #c89154;
-  /* background-image: url("../close-up-of-brown-color-cork-board-texture-background-photo.jpg"); */
   color: #fff;
   overflow: hidden;
   text-transform: uppercase;
-}
-#wrapper {
-  margin: 0 auto;
-  max-width: 100vh;
-  background-color: red;
 }
 
 .liturgie-container {
@@ -30,9 +24,8 @@ body {
   overflow: visible;
 }
 
-
 .liturgie-tekst {
-  font-size: 100px;
+  font-size: 110px;
   line-height: 1.4;
   white-space: pre-wrap;
   word-break: break-word;
@@ -42,28 +35,27 @@ body {
   align-self: center;
   margin: 0;
   padding: 0;
-  /*  Niet zo netjes maar zo komt t linksboven */
-  /* margin-left: -195px;
-  margin-top: -500px; */
+  font-weight: 650;
 }
 
 .liturgie-line {
-  border-bottom: 0.3rem solid #000;
-  padding-bottom: 10px;
-  margin-bottom: 10px;
+  border-bottom: 0.7rem solid #000;
+  min-height: 120px;
+  display: block;
 }
 
-.liturgie-line:last-child {
+/* .liturgie-line:last-child {
   border-bottom: none;
-}
+} */
 
 .letter-block {
+  text-align: center;
+  width: 80px;
   background: #000;
   color: #fff;
-  padding: 1px 2px;
-  margin: 8px 1px;
-  border-radius: 4px;
-  display: inline-block;
+  padding: 1px 10px;
+  margin: 2px 2px;
+  /* display: inline-block; */
 }
 
 .dashboard-body {
@@ -81,6 +73,13 @@ body {
   display: flex;
   flex-direction: column;
   gap: 18px;
+}
+
+.dashboard-container h1 {
+  margin-top: 0;
+  font-size: 2em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .dashboard-header {
@@ -111,20 +110,30 @@ body {
   margin-bottom: 4px;
 }
 
-.dashboard-form textarea {
+.dashboard-container label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.dashboard-form textarea,
+.dashboard-container textarea {
   width: 100%;
-  min-height: 220px;
   resize: vertical;
   padding: 12px;
   border-radius: 6px;
   border: 1px solid #444;
   background: #000;
   color: #fff;
-  font-family: monospace;
-  font-size: 15px;
   box-sizing: border-box;
 }
 
+.dashboard-form textarea {
+  min-height: 220px;
+  font-size: 15px;
+}
+
+.dashboard-container button,
 .dashboard-form button {
   margin-top: 10px;
   padding: 12px 0;
@@ -139,7 +148,23 @@ body {
   transition: background 0.2s;
 }
 
+.dashboard-container button:hover,
 .dashboard-form button:hover {
+  background: #1d4ed8;
+}
+
+.button-link {
+  display: inline-block;
+  padding: 12px 24px;
+  background: #2563eb;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.button-link:hover {
   background: #1d4ed8;
 }
 
@@ -186,62 +211,4 @@ body {
     font-size: 13px;
     margin-top: 8px;
   }
-}
-
-.dashboard-container h1 {
-  margin-top: 0;
-}
-
-.dashboard-container label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
-}
-
-.dashboard-container textarea {
-  width: 100%;
-  min-height: 400px;
-  resize: vertical;
-  padding: 12px;
-  border-radius: 6px;
-  border: 1px solid #444;
-  background: #000;
-  color: #fff;
-  font-family: monospace;
-  font-size: 14px;
-}
-
-/* Consolidated button styles */
-.dashboard-container button,
-.dashboard-form button {
-  margin-top: 10px;
-  padding: 12px 0;
-  border-radius: 6px;
-  border: none;
-  background: #2563eb;
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 17px;
-  width: 100%;
-  transition: background 0.2s;
-}
-
-.dashboard-container button:hover,
-.dashboard-form button:hover {
-  background: #1d4ed8;
-}
-
-.save-status {
-  margin-top: 10px;
-  font-size: 14px;
-}
-
-
-
-/* Removed duplicate body rule */
-#wrapper {
-  margin: 0 auto;
-  max-width: 100vh;
-  background-color: red;
 }

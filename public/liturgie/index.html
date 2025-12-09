@@ -2,9 +2,12 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
+  <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0" /> -->
   <title>Liturgie</title>
   <link rel="stylesheet" href="/styles.css" />
-</head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 <body>
   <div class="liturgie-container">
     <div id="liturgie" class="liturgie-tekst">
@@ -13,24 +16,78 @@
   </div>
 
   <script>
+    function splitLineIntoChunks(line, maxCharsPerLine) {
+      if (line.length <= maxCharsPerLine) {
+        return [line];
+      }
+      
+      const chunks = [];
+      let currentChunk = '';
+      const words = line.split(' ');
+      
+      for (const word of words) {
+        if ((currentChunk + ' ' + word).trim().length <= maxCharsPerLine) {
+          currentChunk = currentChunk ? currentChunk + ' ' + word : word;
+        } else {
+          if (currentChunk) {
+            chunks.push(currentChunk);
+          }
+          // If a single word is longer than maxCharsPerLine, split it
+          if (word.length > maxCharsPerLine) {
+            for (let i = 0; i < word.length; i += maxCharsPerLine) {
+              chunks.push(word.slice(i, i + maxCharsPerLine));
+            }
+            currentChunk = '';
+          } else {
+            currentChunk = word;
+          }
+        }
+      }
+      
+      if (currentChunk) {
+        chunks.push(currentChunk);
+      }
+      
+      return chunks;
+    }
+
     async function laadLiturgie() {
       try {
         const res = await fetch("/api/get-liturgie");
         const data = await res.json();
         const el = document.getElementById("liturgie");
         const tekst = data.tekst || "Geen liturgie ingesteld.";
-        el.innerHTML = tekst
-          .split('\n')
-          .map(line =>
-            `<div class="liturgie-line">${
-              Array.from(line).map(char =>
-                char === " "
-                  ? " "
-                  : `<span class="letter-block">${char}</span>`
-              ).join("")
-            }</div>`
-          )
-          .join("");
+        
+        // Estimate characters per line based on container width
+        // Adjust this value based on your font size and letter-block spacing
+        const maxCharsPerLine = 21; // Approximate, adjust as needed
+        
+        // Split text into lines and then split long lines into chunks
+        const textLines = tekst.split('\n').flatMap(line => {
+          if (line.trim() === "") {
+            return ['&nbsp;'];
+          }
+          
+          const chunks = splitLineIntoChunks(line, maxCharsPerLine);
+          return chunks.map(chunk => 
+            Array.from(chunk).map(char =>
+              char === " "
+                ? " "
+                : `<span class="letter-block">${char}</span>`
+            ).join("")
+          );
+        }).map(content => `<div class="liturgie-line">${content}</div>`);
+        
+        // Calculate how many empty lines are needed to fill the viewport
+        const lineHeight = 120 + 7; // min-height + border-bottom (0.7rem = ~7px)
+        const viewportHeight = window.innerHeight;
+        const contentHeight = textLines.length * lineHeight;
+        const emptyLinesNeeded = Math.max(0, Math.ceil((viewportHeight - contentHeight) / lineHeight));
+        
+        // Add empty lines to fill the viewport
+        const emptyLines = Array(emptyLinesNeeded).fill('<div class="liturgie-line">&nbsp;</div>');
+        
+        el.innerHTML = textLines.concat(emptyLines).join("");
       } catch (err) {
         console.error(err);
         document.getElementById("liturgie").textContent =

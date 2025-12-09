@@ -1,9 +1,9 @@
 {
   "name": "liturgie-software",
   "version": "1.0.0",
-  "description": "",
+  "description": "Liturgie display software voor kerkdiensten",
   "license": "ISC",
-  "author": "",
+  "author": "Coen Booij",
   "type": "commonjs",
   "main": "server.js",
   "scripts": {
