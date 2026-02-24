@@ -277,11 +277,33 @@
       }
     });
 
-    // Block Enter to avoid creating new lines
+    // Block Enter to avoid creating new lines; support Arrow Up/Down to move between lines
     document.getElementById("liturgie").addEventListener("keydown", function (e) {
       if (e.key === "Enter") {
         e.preventDefault();
         return false;
+      }
+
+      if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+        const selection = window.getSelection();
+        if (!selection.rangeCount) return;
+        const range = selection.getRangeAt(0);
+
+        let currentLine = range.startContainer;
+        while (currentLine && !currentLine.classList?.contains("liturgie-line")) {
+          currentLine = currentLine.parentNode;
+        }
+
+        if (!currentLine) return;
+
+        const caretOffset = getCaretCharacterOffsetWithin(currentLine) ?? 0;
+        const targetLine = e.key === "ArrowUp" ? currentLine.previousElementSibling : currentLine.nextElementSibling;
+
+        if (targetLine && targetLine.classList.contains("liturgie-line")) {
+          e.preventDefault();
+          const targetLength = targetLine.textContent.length;
+          setCaretAtOffset(targetLine, Math.min(caretOffset, targetLength));
+        }
       }
     });
 
