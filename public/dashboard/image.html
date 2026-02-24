@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <title>Afbeelding Instellen</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    body { font-family: "Urbanist", sans-serif; padding: 24px; }
+    .container { max-width: 900px; margin: 0 auto; }
+    .preview { width: 100%; height: 60vh; background: #111; display:flex; align-items:center; justify-content:center; overflow:hidden; border-radius:8px; }
+    .preview img { max-width:100%; max-height:100%; object-fit:contain; display:block; }
+    .controls { margin-top:16px; display:flex; gap:12px; align-items:center; }
+    .btn { padding:10px 16px; border-radius:8px; border:0; cursor:pointer; font-weight:600; }
+    .btn.primary { background:#2563eb; color:white; }
+    .btn.ghost { background:transparent; border:1px solid #ccc; }
+    .status { margin-left:8px; color:#333; }
+    .hint { margin-top:8px; color:#666; font-size:14px; }
+    a.show-link { margin-left:12px; color:#2563eb; text-decoration:none; font-weight:600; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Stel afbeelding in</h1>
+    <p class="hint">Upload een afbeelding; deze zal fullscreen getoond worden op <code>/image</code>.</p>
+
+    <div class="preview" id="preview">
+      <span id="no-preview" style="color:#999">Geen afbeelding geselecteerd</span>
+      <img id="preview-img" src="" alt="" style="display:none"/>
+    </div>
+
+    <div class="controls">
+      <input id="file-input" type="file" accept="image/*" />
+      <button id="upload-btn" class="btn primary" disabled>Uploaden</button>
+      <button id="clear-btn" class="btn ghost">Verwijder keuze</button>
+      <a id="show-link" class="show-link" href="/image" target="_blank" style="display:none">Bekijk /image</a>
+      <span id="status" class="status"></span>
+    </div>
+
+    <p class="hint">Huidige geselecteerde bestandsnaam: <span id="current-filename">-</span></p>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById('file-input');
+    const uploadBtn = document.getElementById('upload-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    const previewImg = document.getElementById('preview-img');
+    const noPreview = document.getElementById('no-preview');
+    const statusEl = document.getElementById('status');
+    const currentFilenameEl = document.getElementById('current-filename');
+    const showLink = document.getElementById('show-link');
+
+    let selectedFile = null;
+
+    async function loadCurrent() {
+      try {
+        const res = await fetch('/api/get-image');
+        const data = await res.json();
+        if (data && data.filename) {
+          currentFilenameEl.textContent = data.filename;
+          previewImg.src = '/uploads/' + encodeURIComponent(data.filename);
+          previewImg.style.display = 'block';
+          noPreview.style.display = 'none';
+          showLink.style.display = 'inline-block';
+        } else {
+          currentFilenameEl.textContent = '-';
+          previewImg.style.display = 'none';
+          noPreview.style.display = 'block';
+          showLink.style.display = 'none';
+        }
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Fout bij laden huidige afbeelding';
+      }
+    }
+
+    fileInput.addEventListener('change', (e) => {
+      const f = e.target.files[0];
+      if (!f) {
+        selectedFile = null;
+        uploadBtn.disabled = true;
+        return;
+      }
+      selectedFile = f;
+      uploadBtn.disabled = false;
+      // show immediate preview
+      const url = URL.createObjectURL(f);
+      previewImg.src = url;
+      previewImg.style.display = 'block';
+      noPreview.style.display = 'none';
+    });
+
+    clearBtn.addEventListener('click', () => {
+      fileInput.value = '';
+      selectedFile = null;
+      uploadBtn.disabled = true;
+      previewImg.src = '';
+      previewImg.style.display = 'none';
+      noPreview.style.display = 'block';
+      statusEl.textContent = '';
+    });
+
+    uploadBtn.addEventListener('click', () => {
+      if (!selectedFile) return;
+      statusEl.textContent = 'Bezig met uploaden...';
+      uploadBtn.disabled = true;
+
+      const reader = new FileReader();
+      reader.onload = async function() {
+        const dataUrl = reader.result;
+        try {
+          const res = await fetch('/api/set-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filename: selectedFile.name, data: dataUrl })
+          });
+          const result = await res.json();
+          if (result.ok) {
+            statusEl.textContent = 'Opgeslagen!';
+            currentFilenameEl.textContent = result.filename;
+            showLink.style.display = 'inline-block';
+            // ensure the displayed preview uses the uploaded URL (clear blob URL)
+            previewImg.src = '/uploads/' + encodeURIComponent(result.filename) + '?t=' + Date.now();
+          } else {
+            statusEl.textContent = result.error || 'Fout bij uploaden';
+          }
+        } catch (err) {
+          console.error(err);
+          statusEl.textContent = 'Fout bij uploaden';
+        } finally {
+          uploadBtn.disabled = false;
+          setTimeout(() => { statusEl.textContent = ''; }, 2500);
+        }
+      };
+      reader.readAsDataURL(selectedFile);
+    });
+
+    // initialise
+    loadCurrent();
+  </script>
+</body>
+</html>

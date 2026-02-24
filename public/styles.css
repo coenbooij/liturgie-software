@@ -52,27 +52,7 @@ body {
   border-bottom: none;
 } */
 
-.letter-block {
-  text-align: center;
-  /* width: 80px; */
-  background: #000000dc;
-  color: #fff;
-  padding: 0px 5px;
-  margin: 0px 2px;
-  margin-top: -51px;
-  display: inline-block;
-  line-height: 120px;
-}
 
-.letter-block.space {
-  background: transparent; 
-  width: 25px;        
-}
-
-.letter-block.semicolon {
-  padding: 0px;
-  width: 65px; 
-}
 
 .dashboard-body {
   background: #111;
@@ -227,4 +207,54 @@ body {
     font-size: 13px;
     margin-top: 8px;
   }
+}
+
+.letter-block {
+  text-align: center;
+  /* width: 80px; */
+  background: #000000;
+  color: #fff;
+  padding: 0px 5px;
+  margin: 0px 2px;
+  margin-top: -51px;
+  line-height: 120px;
+  display: inline-block;
+}
+
+.space {
+  text-align: center;
+  /* width: 80px; */
+  background: #000000;
+  color: #fff;
+  padding: 0px 5px;
+  margin: 0px 2px;
+  margin-top: -51px;
+  line-height: 120px;
+  width: 25px !important; 
+  display: inline-block;
+  background: transparent !important; 
+}
+
+.semicolon {
+  text-align: left;
+  /* width: 80px; */
+  background: #000000;
+  color: #fff;
+  padding: 0px 5px;
+  margin: 0px 2px;
+  margin-top: -51px;
+  line-height: 120px;
+  width: 30px !important; 
+  height: 120px !important;
+  display: inline-block;
+}
+
+.liturgie-line span:not(.letter-block):not(.space):not(.semicolon) {
+  display: inline-block;
+  line-height: 120px;
+  margin-top: -51px;
+  padding: 0 5px;
+  background: transparent;
+  color: inherit;
+  vertical-align: top;
 }

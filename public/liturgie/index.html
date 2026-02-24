@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html lang="nl">
+
 <head>
   <meta charset="UTF-8" />
   <title>Liturgie</title>
   <link rel="stylesheet" href="/styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap"
+    rel="stylesheet">
 </head>
+
 <body>
   <div class="liturgie-container">
     <div id="liturgie" class="liturgie-tekst">
@@ -21,41 +25,47 @@
         const res = await fetch("/api/get-liturgie");
         const data = await res.json();
         const el = document.getElementById("liturgie");
-        const tekst = data.tekst || "Geen liturgie ingesteld.";
-        
+        const tekst = data.tekst || "Geen liturgie ingesteld";
+
         // Split text into lines and render each as a liturgie-line
         const textLines = tekst.split('\n').map(line => {
           if (line.trim() === "") {
             return '<div class="liturgie-line">&nbsp;</div>';
           }
-          
+
           const content = Array.from(line).map(char => {
             if (char === " ") {
-              return `<span class="letter-block space"> </span>`;
-            } else if (char === ":") {
-              return `<span class="letter-block semicolon">:</span>`;
-            } else {
+              return `<span class="space"> </span>`;
+            }
+
+            if (char === ":" || char === ";") {
+              return `<span class="semicolon">${char}</span>`;
+            }
+
+            if (/^[a-z0-9]$/i.test(char)) {
               return `<span class="letter-block">${char}</span>`;
             }
+
+            return `<span class="space">${char}</span>`;
           }).join("");
-          
+
           return `<div class="liturgie-line">${content}</div>`;
         });
-        
+
         // Calculate how many empty lines are needed to fill the viewport
         const lineHeight = 120 + 7; // min-height + border-bottom
         const viewportHeight = window.innerHeight;
         const contentHeight = textLines.length * lineHeight;
         const emptyLinesNeeded = Math.max(0, Math.ceil((viewportHeight - contentHeight) / lineHeight));
-        
+
         // Add empty lines to fill the viewport
         const emptyLines = Array(emptyLinesNeeded).fill('<div class="liturgie-line">&nbsp;</div>');
-        
+
         el.innerHTML = textLines.concat(emptyLines).join("");
       } catch (err) {
         console.error(err);
         document.getElementById("liturgie").textContent =
-          "Fout bij laden van de liturgie.";
+          "Fout bij laden van de liturgie : " + err.message;
       }
     }
 
@@ -68,4 +78,5 @@
     setInterval(() => window.location.reload(), 5000);
   </script> -->
 </body>
+
 </html>

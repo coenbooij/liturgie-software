@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="nl">
+
 <head>
   <meta charset="UTF-8" />
   <title>Liturgie Dashboard</title>
   <link rel="stylesheet" href="/styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap"
+    rel="stylesheet">
   <style>
     .save-button-container {
       position: fixed;
@@ -75,6 +78,7 @@
     }
   </style>
 </head>
+
 <body>
   <div class="liturgie-container">
     <div id="liturgie" class="liturgie-tekst">
@@ -88,56 +92,115 @@
   <div id="save-status" class="save-status"></div>
 
   <script>
+    function styleLineContent(text) {
+      return Array.from(text).map(char => {
+        if (char === " ") {
+          return `<span class="space">&nbsp;</span>`;
+        }
+
+        if (char === ":" || char === ";") {
+          return `<span class="semicolon">${char}</span>`;
+        }
+
+        if (/^[a-z0-9]$/i.test(char)) {
+          return `<span class="letter-block">${char}</span>`;
+        }
+
+        // Preserve any other characters visibly but in the neutral style
+        return `<span class="space">${char}</span>`;
+      }).join("");
+    }
+
     function renderLiturgie(tekst) {
       const el = document.getElementById("liturgie");
-      
-      // Split text into lines and render each as a liturgie-line
+
       const textLines = tekst.split('\n').map(line => {
         if (line.trim() === "") {
           return '<div class="liturgie-line" contenteditable="true">&nbsp;</div>';
         }
-        
-        // Wrap each character in a letter-block span, including spaces
-        const content = Array.from(line).map(char =>
-          char === " "
-            ? `<span class="letter-block space"> </span>`
-            : `<span class="letter-block">${char}</span>`
-        ).join("");
-        
-        return `<div class="liturgie-line" contenteditable="true">${content}</div>`;
+
+        return `<div class="liturgie-line" contenteditable="true">${styleLineContent(line)}</div>`;
       });
-      
+
       // Calculate how many empty lines are needed to fill the viewport
       const lineHeight = 120 + 7; // min-height + border-bottom
       const viewportHeight = window.innerHeight;
       const contentHeight = textLines.length * lineHeight;
       const emptyLinesNeeded = Math.max(0, Math.ceil((viewportHeight - contentHeight) / lineHeight));
-      
+
       // Add empty lines to fill the viewport
       const emptyLines = Array(emptyLinesNeeded).fill('<div class="liturgie-line" contenteditable="true">&nbsp;</div>');
-      
+
       el.innerHTML = textLines.concat(emptyLines).join("");
+    }
+
+    function getCaretCharacterOffsetWithin(element) {
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return null;
+      const range = selection.getRangeAt(0);
+
+      // If the cursor is directly in the line element (e.g. empty line)
+      if (range.endContainer === element) {
+        return range.endOffset;
+      }
+
+      let offset = 0;
+      const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null);
+      let node;
+
+      while ((node = walker.nextNode())) {
+        if (node === range.endContainer) {
+          return offset + range.endOffset;
+        }
+        offset += node.textContent.length;
+      }
+
+      return null;
+    }
+
+    function setCaretAtOffset(element, offset) {
+      const selection = window.getSelection();
+      const range = document.createRange();
+      let currentOffset = 0;
+
+      const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null);
+      let node;
+
+      while ((node = walker.nextNode())) {
+        const nextOffset = currentOffset + node.textContent.length;
+        if (offset <= nextOffset) {
+          range.setStart(node, offset - currentOffset);
+          range.collapse(true);
+          selection.removeAllRanges();
+          selection.addRange(range);
+          return;
+        }
+        currentOffset = nextOffset;
+      }
+
+      range.selectNodeContents(element);
+      range.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+
+    function applyStylingToLine(lineEl) {
+      const caretOffset = getCaretCharacterOffsetWithin(lineEl);
+      const text = lineEl.textContent.replace(/\u00a0/g, ' ');
+      lineEl.innerHTML = text === "" ? "&nbsp;" : styleLineContent(text);
+      if (caretOffset !== null) {
+        setCaretAtOffset(lineEl, Math.min(caretOffset, lineEl.textContent.length));
+      }
     }
 
     function extractTextFromLiturgie() {
       const el = document.getElementById("liturgie");
       const lines = el.querySelectorAll('.liturgie-line');
       const textLines = [];
-      
+
       for (const line of lines) {
-        let lineText = '';
-        
-        // Extract text preserving all spaces
-        for (const node of line.childNodes) {
-          if (node.nodeType === Node.TEXT_NODE) {
-            // Replace non-breaking spaces with regular spaces
-            lineText += node.textContent.replace(/ /g, ' ');
-          } else if (node.classList && node.classList.contains('letter-block')) {
-            // Get text content, handling both regular characters and spaces
-            lineText += node.textContent;
-          }
-        }
-        
+        const lineText = line.textContent.replace(/\u00a0/g, ' ');
+
         // Treat lines with only whitespace (including nbsp) as empty lines
         // This preserves empty lines when saving
         if (lineText.trim() === '') {
@@ -146,12 +209,12 @@
           textLines.push(lineText);
         }
       }
-      
+
       // Remove trailing empty lines that are just viewport fillers
       while (textLines.length > 0 && textLines[textLines.length - 1] === '') {
         textLines.pop();
       }
-      
+
       return textLines.join('\n');
     }
 
@@ -170,7 +233,7 @@
     async function opslaanLiturgie() {
       const saveBtn = document.getElementById("save-button");
       const statusEl = document.getElementById("save-status");
-      
+
       try {
         saveBtn.disabled = true;
         statusEl.textContent = "Bezig met opslaan...";
@@ -206,41 +269,24 @@
 
     document.getElementById("save-button").addEventListener("click", opslaanLiturgie);
 
-    // Handle Enter key to create new lines properly
-    document.getElementById("liturgie").addEventListener("keydown", function(e) {
+      // Live styling while typing
+    document.getElementById("liturgie").addEventListener("input", function (e) {
+      const targetLine = e.target.closest('.liturgie-line');
+      if (targetLine) {
+        applyStylingToLine(targetLine);
+      }
+    });
+
+    // Block Enter to avoid creating new lines
+    document.getElementById("liturgie").addEventListener("keydown", function (e) {
       if (e.key === "Enter") {
         e.preventDefault();
-        const selection = window.getSelection();
-        const range = selection.getRangeAt(0);
-        
-        // Insert a newline by creating a new line div
-        const newLine = document.createElement("div");
-        newLine.className = "liturgie-line";
-        newLine.contentEditable = "true";
-        newLine.innerHTML = "&nbsp;";
-        
-        // Find the current line
-        let currentLine = range.startContainer;
-        while (currentLine && !currentLine.classList?.contains("liturgie-line")) {
-          currentLine = currentLine.parentNode;
-        }
-        
-        if (currentLine && currentLine.nextSibling) {
-          currentLine.parentNode.insertBefore(newLine, currentLine.nextSibling);
-        } else if (currentLine) {
-          currentLine.parentNode.appendChild(newLine);
-        }
-        
-        // Move cursor to new line
-        const newRange = document.createRange();
-        newRange.setStart(newLine, 0);
-        newRange.collapse(true);
-        selection.removeAllRanges();
-        selection.addRange(newRange);
+        return false;
       }
     });
 
     laadLiturgie();
   </script>
 </body>
+
 </html>
