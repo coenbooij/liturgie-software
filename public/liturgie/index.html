@@ -31,7 +31,7 @@
         // Split text into lines and render each as a liturgie-line
         const textLines = tekst.split('\n').map(line => {
           if (line.trim() === "") {
-            return '<div class="liturgie-line">&nbsp;</div>';
+            return '<div class="liturgie-line empty-line">&nbsp;</div>';
           }
 
           const content = Array.from(line).map(char => {
@@ -60,7 +60,7 @@
         const emptyLinesNeeded = Math.max(0, Math.ceil((viewportHeight - contentHeight) / lineHeight));
 
         // Add empty lines to fill the viewport
-        const emptyLines = Array(emptyLinesNeeded).fill('<div class="liturgie-line">&nbsp;</div>');
+        const emptyLines = Array(emptyLinesNeeded).fill('<div class="liturgie-line empty-line">&nbsp;</div>');
 
         el.innerHTML = textLines.concat(emptyLines).join("");
       } catch (err) {

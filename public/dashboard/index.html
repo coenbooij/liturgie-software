@@ -228,13 +228,22 @@
 
       const scale = Math.min(availableWidth / DESIGN_WIDTH, availableHeight / DESIGN_HEIGHT, 1);
 
-      preview.style.width = `${DESIGN_WIDTH}px`;
-      preview.style.height = `${DESIGN_HEIGHT}px`;
-      preview.style.transform = `scale(${scale})`;
-      preview.style.transformOrigin = 'top left';
+      // On small screens, use full available area without showing a tiny scaled rectangle
+      if (scale < 1) {
+        preview.style.width = `${availableWidth}px`;
+        preview.style.height = `${availableHeight}px`;
+        preview.style.transform = 'none';
+        viewport.style.width = `${availableWidth}px`;
+        viewport.style.height = `${availableHeight}px`;
+      } else {
+        preview.style.width = `${DESIGN_WIDTH}px`;
+        preview.style.height = `${DESIGN_HEIGHT}px`;
+        preview.style.transform = `scale(${scale})`;
+        preview.style.transformOrigin = 'top left';
 
-      viewport.style.width = `${DESIGN_WIDTH * scale}px`;
-      viewport.style.height = `${DESIGN_HEIGHT * scale}px`;
+        viewport.style.width = `${DESIGN_WIDTH * scale}px`;
+        viewport.style.height = `${DESIGN_HEIGHT * scale}px`;
+      }
     }
 
     function styleLineContent(text) {
@@ -261,7 +270,7 @@
 
       const textLines = tekst.split('\n').map(line => {
         if (line.trim() === "") {
-          return '<div class="liturgie-line" contenteditable="true">&nbsp;</div>';
+          return '<div class="liturgie-line empty-line" contenteditable="true">&nbsp;</div>';
         }
 
         return `<div class="liturgie-line" contenteditable="true">${styleLineContent(line)}</div>`;
@@ -276,7 +285,7 @@
       const emptyLinesNeeded = Math.max(0, Math.ceil((viewportHeight - contentHeight) / lineHeight));
 
       // Add empty lines to fill the viewport
-      const emptyLines = Array(emptyLinesNeeded).fill('<div class="liturgie-line" contenteditable="true">&nbsp;</div>');
+      const emptyLines = Array(emptyLinesNeeded).fill('<div class="liturgie-line empty-line" contenteditable="true">&nbsp;</div>');
 
       el.innerHTML = textLines.concat(emptyLines).join("");
     }
