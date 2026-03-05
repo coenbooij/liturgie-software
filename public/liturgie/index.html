@@ -43,6 +43,10 @@
               return `<span class="semicolon">${char}</span>`;
             }
 
+            if (char === "-") {
+              return `<span class="letter-block">${char}</span>`;
+            }
+
             if (/^[a-z0-9]$/i.test(char)) {
               return `<span class="letter-block">${char}</span>`;
             }
@@ -54,7 +58,11 @@
         });
 
         // Calculate how many empty lines are needed to fill the viewport
-        const lineHeight = 120 + 7; // min-height + border-bottom
+        // Use computed styles to match current responsive sizes
+        const rootStyles = getComputedStyle(document.body);
+        const lineBlock = parseFloat(rootStyles.getPropertyValue('--lit-block-line-height') || '120');
+        const lineBottom = parseFloat(rootStyles.getPropertyValue('--lit-line-bottom') || '7');
+        const lineHeight = lineBlock + lineBottom;
         const viewportHeight = window.innerHeight;
         const contentHeight = textLines.length * lineHeight;
         const emptyLinesNeeded = Math.max(0, Math.ceil((viewportHeight - contentHeight) / lineHeight));

@@ -256,6 +256,10 @@
           return `<span class="semicolon">${char}</span>`;
         }
 
+        if (char === "-") {
+          return `<span class="letter-block">${char}</span>`;
+        }
+
         if (/^[a-z0-9]$/i.test(char)) {
           return `<span class="letter-block">${char}</span>`;
         }
@@ -276,9 +280,10 @@
         return `<div class="liturgie-line" contenteditable="true">${styleLineContent(line)}</div>`;
       });
 
-      // Calculate how many empty lines are needed to fill the viewport
-      const computedLine = getComputedStyle(document.documentElement).getPropertyValue('--line-height').trim();
-      const computedBorder = getComputedStyle(document.documentElement).getPropertyValue('--line-border').trim();
+      // Calculate how many empty lines are needed to fill the viewport using computed values
+      const rootStyles = getComputedStyle(document.documentElement);
+      const computedLine = rootStyles.getPropertyValue('--line-height').trim();
+      const computedBorder = rootStyles.getPropertyValue('--line-border').trim();
       const lineHeight = (parseFloat(computedLine || '120') + parseFloat(computedBorder || '7'));
       const viewportHeight = window.innerHeight;
       const contentHeight = textLines.length * lineHeight;
