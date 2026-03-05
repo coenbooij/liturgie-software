@@ -11,6 +11,111 @@
     href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap"
     rel="stylesheet">
   <style>
+    :root {
+      --line-height: 127px;
+      --line-border: 7px;
+      --card-max-width: 420px;
+    }
+
+    @media (max-width: 800px) {
+      :root {
+        --line-height: 90px;
+        --line-border: 5px;
+        --card-max-width: 94vw;
+      }
+    }
+
+    @media (max-width: 540px) {
+      :root {
+        --line-height: 72px;
+        --line-border: 4px;
+        --card-max-width: 96vw;
+      }
+    }
+
+    .auth-gate {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 20px;
+    }
+
+    .auth-gate.hidden {
+      display: none;
+    }
+
+    .auth-card {
+      background: #0f172a;
+      color: #e2e8f0;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 24px;
+      width: min(var(--card-max-width), 100%);
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+      font-family: "Urbanist", sans-serif;
+    }
+
+    .auth-card h2 {
+      margin: 0 0 8px;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .auth-card p {
+      margin: 0 0 16px;
+      color: #cbd5e1;
+      line-height: 1.4;
+    }
+
+    .auth-card input[type="password"] {
+      width: 100%;
+      max-width: 260px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: #1e293b;
+      color: #e2e8f0;
+      font-size: 16px;
+      margin-bottom: 12px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      letter-spacing: 0.16em;
+    }
+
+    .auth-card input[type="password"]:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25);
+    }
+
+    .auth-card button {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: none;
+      background: #2563eb;
+      color: white;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    .auth-card button:hover {
+      background: #1d4ed8;
+      transform: translateY(-1px);
+    }
+
+    .auth-error {
+      margin-top: 10px;
+      color: #f87171;
+      font-size: 14px;
+      min-height: 18px;
+    }
+
     .save-button-container {
       position: fixed;
       bottom: 30px;
@@ -79,10 +184,24 @@
   </style>
 </head>
 
-<body>
-  <div class="liturgie-container">
-    <div id="liturgie" class="liturgie-tekst">
-      Liturgie wordt geladen...
+<body class="dashboard-page">
+  <div id="auth-gate" class="auth-gate hidden">
+    <div class="auth-card">
+      <h2>Dashboard beveiligd</h2>
+      <p>Voer het wachtwoord in om het dashboard te openen.</p>
+      <input id="auth-password" type="password" placeholder="Wachtwoord" autocomplete="current-password" />
+      <button id="auth-submit">Ontgrendelen</button>
+      <div id="auth-error" class="auth-error"></div>
+    </div>
+  </div>
+
+  <div class="preview-shell">
+    <div class="preview-viewport">
+      <div class="liturgie-container dashboard-preview">
+        <div id="liturgie" class="liturgie-tekst">
+          Liturgie wordt geladen...
+        </div>
+      </div>
     </div>
   </div>
 
@@ -92,6 +211,32 @@
   <div id="save-status" class="save-status"></div>
 
   <script>
+    const ACCESS_CODE = "0404";
+    let dashboardInitialized = false;
+
+    const DESIGN_WIDTH = 1920;
+    const DESIGN_HEIGHT = 1080;
+
+    function updatePreviewScale() {
+      const viewport = document.querySelector('.preview-viewport');
+      const preview = document.querySelector('.dashboard-preview');
+      if (!viewport || !preview) return;
+
+      const padding = 48; // account for shell padding (24px each side)
+      const availableWidth = window.innerWidth - padding;
+      const availableHeight = window.innerHeight - padding;
+
+      const scale = Math.min(availableWidth / DESIGN_WIDTH, availableHeight / DESIGN_HEIGHT, 1);
+
+      preview.style.width = `${DESIGN_WIDTH}px`;
+      preview.style.height = `${DESIGN_HEIGHT}px`;
+      preview.style.transform = `scale(${scale})`;
+      preview.style.transformOrigin = 'top left';
+
+      viewport.style.width = `${DESIGN_WIDTH * scale}px`;
+      viewport.style.height = `${DESIGN_HEIGHT * scale}px`;
+    }
+
     function styleLineContent(text) {
       return Array.from(text).map(char => {
         if (char === " ") {
@@ -123,7 +268,9 @@
       });
 
       // Calculate how many empty lines are needed to fill the viewport
-      const lineHeight = 120 + 7; // min-height + border-bottom
+      const computedLine = getComputedStyle(document.documentElement).getPropertyValue('--line-height').trim();
+      const computedBorder = getComputedStyle(document.documentElement).getPropertyValue('--line-border').trim();
+      const lineHeight = (parseFloat(computedLine || '120') + parseFloat(computedBorder || '7'));
       const viewportHeight = window.innerHeight;
       const contentHeight = textLines.length * lineHeight;
       const emptyLinesNeeded = Math.max(0, Math.ceil((viewportHeight - contentHeight) / lineHeight));
@@ -267,24 +414,35 @@
       }
     }
 
-    document.getElementById("save-button").addEventListener("click", opslaanLiturgie);
+    function updateLineText(lineEl, newText, caretPos) {
+      lineEl.innerHTML = newText === "" ? "&nbsp;" : styleLineContent(newText);
+      setCaretAtOffset(lineEl, Math.max(0, Math.min(caretPos, lineEl.textContent.length)));
+    }
+
+    function initDashboard() {
+      if (dashboardInitialized) return;
+      dashboardInitialized = true;
+
+      document.getElementById("save-button").addEventListener("click", opslaanLiturgie);
+
+      updatePreviewScale();
+      window.addEventListener('resize', updatePreviewScale);
 
       // Live styling while typing
-    document.getElementById("liturgie").addEventListener("input", function (e) {
-      const targetLine = e.target.closest('.liturgie-line');
-      if (targetLine) {
-        applyStylingToLine(targetLine);
-      }
-    });
+      document.getElementById("liturgie").addEventListener("input", function (e) {
+        const targetLine = e.target.closest('.liturgie-line');
+        if (targetLine) {
+          applyStylingToLine(targetLine);
+        }
+      });
 
-    // Block Enter to avoid creating new lines; support Arrow Up/Down to move between lines
-    document.getElementById("liturgie").addEventListener("keydown", function (e) {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        return false;
-      }
+      // Block Enter to avoid creating new lines; support Arrow Up/Down to move between lines; handle Backspace/Delete cleanly
+      document.getElementById("liturgie").addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          return false;
+        }
 
-      if (e.key === "ArrowUp" || e.key === "ArrowDown") {
         const selection = window.getSelection();
         if (!selection.rangeCount) return;
         const range = selection.getRangeAt(0);
@@ -297,17 +455,80 @@
         if (!currentLine) return;
 
         const caretOffset = getCaretCharacterOffsetWithin(currentLine) ?? 0;
-        const targetLine = e.key === "ArrowUp" ? currentLine.previousElementSibling : currentLine.nextElementSibling;
 
-        if (targetLine && targetLine.classList.contains("liturgie-line")) {
+        if (e.key === "Backspace") {
           e.preventDefault();
-          const targetLength = targetLine.textContent.length;
-          setCaretAtOffset(targetLine, Math.min(caretOffset, targetLength));
+          if (caretOffset === 0) return; // nothing to delete before start
+          const text = currentLine.textContent.replace(/\u00a0/g, ' ');
+          const newText = text.slice(0, caretOffset - 1) + text.slice(caretOffset);
+          updateLineText(currentLine, newText, caretOffset - 1);
+          return;
+        }
+
+        if (e.key === "Delete") {
+          e.preventDefault();
+          const text = currentLine.textContent.replace(/\u00a0/g, ' ');
+          if (caretOffset >= text.length) return; // nothing ahead
+          const newText = text.slice(0, caretOffset) + text.slice(caretOffset + 1);
+          updateLineText(currentLine, newText, caretOffset);
+          return;
+        }
+
+        if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+          const targetLine = e.key === "ArrowUp" ? currentLine.previousElementSibling : currentLine.nextElementSibling;
+
+          if (targetLine && targetLine.classList.contains("liturgie-line")) {
+            e.preventDefault();
+            const targetLength = targetLine.textContent.length;
+            setCaretAtOffset(targetLine, Math.min(caretOffset, targetLength));
+          }
+        }
+      });
+
+      laadLiturgie();
+    }
+
+    function handleAuthSuccess() {
+      sessionStorage.setItem("dashboardAuth", "ok");
+      document.getElementById("auth-gate").classList.add("hidden");
+      initDashboard();
+    }
+
+    function setupAuthGate() {
+      const gate = document.getElementById("auth-gate");
+      const input = document.getElementById("auth-password");
+      const button = document.getElementById("auth-submit");
+      const error = document.getElementById("auth-error");
+
+      function tryUnlock() {
+        const value = input.value.trim();
+        if (value === ACCESS_CODE) {
+          handleAuthSuccess();
+        } else {
+          error.textContent = "Onjuist wachtwoord.";
         }
       }
-    });
 
-    laadLiturgie();
+      button.addEventListener("click", tryUnlock);
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          tryUnlock();
+        }
+      });
+
+      gate.classList.remove("hidden");
+      input.focus();
+    }
+
+    if (sessionStorage.getItem("dashboardAuth") === "ok") {
+      document.getElementById("auth-gate").classList.add("hidden");
+      updatePreviewScale();
+      initDashboard();
+    } else {
+      updatePreviewScale();
+      setupAuthGate();
+    }
   </script>
 </body>
 

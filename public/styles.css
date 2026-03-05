@@ -8,6 +8,39 @@ body {
   text-transform: uppercase;
 }
 
+.dashboard-page {
+  background: #0b0f1a;
+  min-height: 100vh;
+  overflow: auto;
+}
+
+.preview-shell {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.preview-viewport {
+  width: min(420px, 90vw);
+  height: min(750px, 90vh);
+  background: #111;
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+  overflow: hidden;
+  position: relative;
+}
+
+.dashboard-preview {
+  position: absolute;
+  inset: 0;
+  background: #c89154;
+}
+
 .liturgie-container {
   width: 100vw;
   height: 100vh;
@@ -21,7 +54,7 @@ body {
   position: absolute;
   top: 0;
   left: 0;
-  overflow: hidden;
+  overflow: auto;
 }
 
 .liturgie-tekst {
