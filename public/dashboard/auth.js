@@ -48,10 +48,10 @@
     gate.className = "auth-gate";
     gate.innerHTML = `
       <div class="auth-card">
-        <h2>Beveiligd</h2>
-        <p>Voer het wachtwoord in om verder te gaan.</p>
-        <input type="password" placeholder="Wachtwoord" autocomplete="current-password" />
-        <button type="button">Ontgrendelen</button>
+        <h2>Wachtwoord</h2>
+        <p>Eenmalig invullen, daarna onthoudt dit apparaat het.</p>
+        <input type="password" placeholder="Wachtwoord" autocomplete="current-password" inputmode="numeric" />
+        <button type="button">Verder</button>
         <div class="auth-error"></div>
       </div>`;
     document.body.appendChild(gate);
