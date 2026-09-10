@@ -49,7 +49,6 @@
     gate.innerHTML = `
       <div class="auth-card">
         <h2>Wachtwoord</h2>
-        <p>Eenmalig invullen, daarna onthoudt dit apparaat het.</p>
         <input type="password" placeholder="Wachtwoord" autocomplete="current-password" inputmode="numeric" />
         <button type="button">Verder</button>
         <div class="auth-error"></div>

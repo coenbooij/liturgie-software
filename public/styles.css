@@ -366,7 +366,7 @@ body {
 }
 
 .auth-card h2 {
-  margin: 0;
+  margin: 0 0 4px;
   font-size: 22px;
   font-weight: 700;
 }
