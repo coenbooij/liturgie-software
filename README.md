@@ -92,7 +92,7 @@ De maten (fontgrootte, blokhoogte, negatieve marges om blokjes uit te lijnen) st
 - Elke regel is een `contenteditable` div. Enter is geblokkeerd, pijltjes omhoog/omlaag springen naar de vorige/volgende regel. Plakken voegt alleen platte tekst op de huidige regel in.
 - Backspace en Delete worden zelf afgehandeld zodat de blokjes-opmaak niet stuk gaat. Na elke toetsaanslag wordt de regel opnieuw opgemaakt en de caret teruggezet.
 - Bij het verlaten van de pagina met niet-opgeslagen wijzigingen vraagt de browser om bevestiging.
-- Het wachtwoord wordt gecontroleerd via `POST /api/login` en bewaard in `sessionStorage`. Bij een 401 op opslaan verschijnt de gate opnieuw.
+- Het wachtwoord wordt gecontroleerd via `POST /api/login` en bewaard in `localStorage` (blijft op de telefoon staan, ook in de PWA). Bij een 401 op opslaan verschijnt de gate opnieuw.
 
 ## API
 

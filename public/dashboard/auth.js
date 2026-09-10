@@ -1,22 +1,39 @@
 // Wachtwoordgate voor de beheerpagina's. Het wachtwoord wordt door de server gecontroleerd
-// en in sessionStorage bewaard zodat het als header meegestuurd kan worden.
+// en in localStorage bewaard, zodat een PWA op de telefoon het niet elke keer opnieuw vraagt.
 (function (global) {
   "use strict";
 
   const KEY = "liturgieWachtwoord";
 
   function getWachtwoord() {
-    return sessionStorage.getItem(KEY) || "";
+    try {
+      return localStorage.getItem(KEY) || "";
+    } catch (err) {
+      return "";
+    }
+  }
+
+  function remember(wachtwoord) {
+    try {
+      localStorage.setItem(KEY, wachtwoord);
+    } catch (err) {
+      // Opslag niet beschikbaar (privémodus): dan vraagt de gate het de volgende keer opnieuw.
+    }
   }
 
   function forget() {
-    sessionStorage.removeItem(KEY);
+    try {
+      localStorage.removeItem(KEY);
+    } catch (err) {
+      // niets te doen
+    }
   }
 
   function authHeaders() {
     return { "X-Wachtwoord": getWachtwoord() };
   }
 
+  // Geeft true (goed), false (fout wachtwoord) of gooit bij een netwerkfout.
   async function verify(wachtwoord) {
     const res = await fetch("/api/login", {
       method: "POST",
@@ -44,11 +61,20 @@
   // Toont de gate als er nog geen geldig wachtwoord is. Roept onReady aan zodra dat er is.
   async function ensureAuth(onReady) {
     const stored = getWachtwoord();
-    if (stored && (await verify(stored).catch(() => false))) {
-      onReady();
-      return;
+    if (stored) {
+      try {
+        if (await verify(stored)) {
+          onReady();
+          return;
+        }
+        // Wachtwoord is veranderd: opnieuw vragen.
+        forget();
+      } catch (err) {
+        // Server even niet bereikbaar: bewaard wachtwoord houden, de pagina meldt de fout zelf.
+        onReady();
+        return;
+      }
     }
-    forget();
 
     const gate = buildGate();
     const input = gate.querySelector("input");
@@ -62,7 +88,7 @@
       error.textContent = "";
       try {
         if (await verify(value)) {
-          sessionStorage.setItem(KEY, value);
+          remember(value);
           gate.remove();
           onReady();
         } else {
