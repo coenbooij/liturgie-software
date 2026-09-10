@@ -31,6 +31,7 @@ Analyse van 10 september 2026. Alle punten uit de eerste ronde zijn op dezelfde 
 - Opgelost bij het herschrijven: typen in een lege regel gaf een extra spatie (de placeholder-nbsp telde mee). Regels worden nu ook zonder spaties aan het eind opgeslagen.
 - Afbeelding kan verwijderd worden via de uploadpagina.
 - Eén bordpagina (`/bord/`) die live schakelt tussen liturgie en afbeelding; schakelaar op het startscherm. Startscherm in dezelfde stijl als het bord.
+- Bord werkt door als de server wegvalt: geen foutmeldingen, laatste stand in localStorage, service worker cachet pagina, font, API-antwoorden en afbeelding. Ook na een herstart van de Pi.
 
 ## Open
 

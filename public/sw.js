@@ -1,8 +1,28 @@
-// Network-first: altijd de nieuwste versie van de server, cache alleen als vangnet.
-const CACHE_NAME = "liturgie-cache-v3";
+// Service worker: netwerk eerst, cache als vangnet.
+// Doel: het bord (een Pi aan een tv) blijft werken als de server wegvalt, ook na een
+// herstart. Alles wat het bord nodig heeft wordt gecachet: pagina, stijlen, font,
+// renderlogica, de laatste API-antwoorden en de laatste afbeelding.
+const CACHE_NAME = "liturgie-cache-v4";
 
-self.addEventListener("install", () => {
-  self.skipWaiting();
+const PRECACHE = [
+  "/",
+  "/bord/",
+  "/liturgie/",
+  "/styles.css",
+  "/liturgie-render.js",
+  "/fonts/urbanist-latin.woff2",
+  "/fonts/urbanist-latin-ext.woff2",
+  "/icon.svg",
+  "/manifest.json",
+];
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => Promise.allSettled(PRECACHE.map((url) => cache.add(url))))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener("activate", (event) => {
@@ -14,22 +34,32 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+// Cache-sleutel zonder querystring, zodat "?t=123" varianten dezelfde cache raken.
+function cacheKey(url) {
+  return url.origin + url.pathname;
+}
+
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
-  const isStatic =
+  const meedoen =
     event.request.method === "GET" &&
     url.origin === self.location.origin &&
-    !url.pathname.startsWith("/api/") &&
-    !url.pathname.startsWith("/uploads/");
-  if (!isStatic) return;
+    url.pathname !== "/api/events"; // SSE-stream nooit onderscheppen
+  if (!meedoen) return;
+
+  const key = cacheKey(url);
 
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(key, copy));
+        }
         return response;
       })
-      .catch(() => caches.match(event.request).then((cached) => cached || Response.error()))
+      .catch(() =>
+        caches.match(key).then((cached) => cached || Response.error())
+      )
   );
 });

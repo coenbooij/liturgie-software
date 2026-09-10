@@ -36,7 +36,7 @@ Wachtwoord instellen: kopieer `config.example.json` naar `config.json` en pas `w
 | URL | Wat | Voor wie |
 |---|---|---|
 | `/` | Startscherm: schakelaar "Het bord toont" (liturgie of afbeelding) plus knoppen naar de twee beheerpagina's. Schakelen vraagt het wachtwoord. | Beheerder |
-| `/bord/` | Het scherm zelf. Toont de liturgie als letterbord of de afbeelding fullscreen, afhankelijk van de schakelaar. Ververst direct na een wijziging, elke 30 seconden als vangnet. Cursor verborgen. | Bord-pc (fullscreen in browser, staand 1080x1920) |
+| `/bord/` | Het scherm zelf. Toont de liturgie als letterbord of de afbeelding fullscreen, afhankelijk van de schakelaar. Ververst direct na een wijziging, elke 30 seconden als vangnet. Toont nooit een foutmelding: valt de server weg, dan blijft het laatste beeld staan. Cursor verborgen. | Raspberry Pi aan een tv (fullscreen in browser, staand 1080x1920) |
 | `/dashboard/` | Liturgie bewerken, met wachtwoordgate. Regels zijn direct bewerkbaar in een preview op schaal van het bord. Opslaan met de knop of Ctrl+S. De koster zet deze op het startscherm van de telefoon. | Koster |
 | `/dashboard/image.html` | Afbeelding uploaden of verwijderen. Zelfde wachtwoord. | Beheerder |
 | `/liturgie/`, `/image/` | Oude adressen, sturen door naar `/bord/`. | |
@@ -110,6 +110,16 @@ De maten (fontgrootte, blokhoogte, negatieve marges om blokjes uit te lijnen) st
 
 "header" betekent: `X-Wachtwoord: <wachtwoord>`. Fouten geven een 4xx/5xx met `{ "error": "..." }`.
 
+## Bord zonder server
+
+Elk bord is een tv met een Raspberry Pi die `http://<server-ip>:<poort>/bord/` fullscreen opent. Het bord moet blijven werken als de server of het netwerk wegvalt:
+
+- De bordpagina toont nooit een foutmelding. Mislukt het ophalen, dan blijft het laatste beeld staan. Zodra de server terug is, verbindt de eventstroom vanzelf opnieuw en ververst het bord.
+- De laatste liturgie, schermstand en bestandsnaam van de afbeelding staan in `localStorage` van de Pi-browser.
+- De service worker (`sw.js`) bewaart de pagina, stijlen, font, renderlogica, de laatste API-antwoorden en de laatste afbeelding. Daardoor komt het bord ook na een herstart van de Pi zonder server op met de laatste bekende stand.
+
+Voorwaarde: het bord moet de server minstens één keer gezien hebben. Wijzigingen die tijdens een storing gemaakt worden, komen pas aan als de server weer bereikbaar is.
+
 ## PWA
 
 Er zijn twee manifesten, dus twee installeerbare apps:
@@ -119,4 +129,4 @@ Er zijn twee manifesten, dus twee installeerbare apps:
 | `/` | "Liturgie Digitaal" (`public/manifest.json`) | het startscherm met de schakelaar |
 | `/dashboard/` | "Liturgie bewerken" (`public/dashboard/manifest.json`) | direct het dashboard, voor de koster |
 
-De koster opent dus `/dashboard/` op de telefoon en kiest "Zet op beginscherm". `sw.js` maakt de site installeerbaar. De service worker is network-first: hij haalt altijd de nieuwste versie van de server en gebruikt de cache alleen als de server niet bereikbaar is. API-calls en uploads gaan er nooit doorheen.
+De koster opent dus `/dashboard/` op de telefoon en kiest "Zet op beginscherm". `sw.js` maakt de site installeerbaar en werkt netwerk-eerst: altijd de nieuwste versie van de server, cache alleen als de server niet bereikbaar is. Alleen de eventstroom `/api/events` gaat er niet doorheen.

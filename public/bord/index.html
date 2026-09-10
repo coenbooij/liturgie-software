@@ -9,6 +9,11 @@
   <link rel="stylesheet" href="/styles.css" />
   <style>
     /* Het bord toont de liturgie of de afbeelding, afhankelijk van de modus. */
+    body {
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
     body.modus-afbeelding {
       background: #000;
     }
@@ -35,21 +40,65 @@
 
 <body class="modus-liturgie">
   <div class="liturgie-container">
-    <div id="liturgie" class="liturgie-tekst">
-      Liturgie wordt geladen...
-    </div>
+    <div id="liturgie" class="liturgie-tekst"></div>
   </div>
 
   <img id="afbeelding" class="leeg" alt="" />
 
   <script src="/liturgie-render.js"></script>
   <script>
+    // Het bord toont nooit een foutmelding. Valt de server weg, dan blijft het laatste
+    // beeld staan. De laatste stand wordt ook lokaal bewaard, zodat het bord na een
+    // herstart zonder server meteen weer hetzelfde laat zien.
     const liturgieEl = document.getElementById("liturgie");
     const afbeeldingEl = document.getElementById("afbeelding");
-    let laatsteTekst = null;
+    const OPSLAG = { tekst: "bordLiturgie", modus: "bordModus", afbeelding: "bordAfbeelding" };
 
-    function toonFout(tekst) {
-      liturgieEl.textContent = tekst;
+    let laatsteTekst = null;
+    let laatsteModus = "liturgie";
+
+    function bewaar(sleutel, waarde) {
+      try {
+        if (waarde === null || waarde === undefined) localStorage.removeItem(sleutel);
+        else localStorage.setItem(sleutel, waarde);
+      } catch (err) {
+        // Geen opslag beschikbaar: dan alleen wat er nu in beeld staat.
+      }
+    }
+
+    function lees(sleutel) {
+      try {
+        return localStorage.getItem(sleutel);
+      } catch (err) {
+        return null;
+      }
+    }
+
+    function toonTekst(tekst) {
+      laatsteTekst = tekst;
+      LiturgieRender.render(liturgieEl, tekst);
+    }
+
+    function toonModus(modus) {
+      laatsteModus = modus === "afbeelding" ? "afbeelding" : "liturgie";
+      document.body.classList.toggle("modus-liturgie", laatsteModus === "liturgie");
+      document.body.classList.toggle("modus-afbeelding", laatsteModus === "afbeelding");
+      // Een render terwijl het bord verborgen was, kent de schermhoogte niet: opnieuw doen.
+      if (laatsteModus === "liturgie" && laatsteTekst !== null) {
+        LiturgieRender.render(liturgieEl, laatsteTekst);
+      }
+    }
+
+    function toonAfbeelding(filename) {
+      if (filename) {
+        // Geen cache-buster: de bestandsnaam is al uniek per upload, en zo kan de
+        // service worker de afbeelding uit zijn cache halen als de server weg is.
+        afbeeldingEl.src = "/uploads/" + encodeURIComponent(filename);
+        afbeeldingEl.classList.remove("leeg");
+      } else {
+        afbeeldingEl.removeAttribute("src");
+        afbeeldingEl.classList.add("leeg");
+      }
     }
 
     async function haal(pad) {
@@ -61,43 +110,32 @@
     async function laadScherm() {
       try {
         const data = await haal("/api/get-scherm");
-        const modus = data.modus === "afbeelding" ? "afbeelding" : "liturgie";
-        document.body.classList.toggle("modus-liturgie", modus === "liturgie");
-        document.body.classList.toggle("modus-afbeelding", modus === "afbeelding");
-        // Opnieuw renderen: een render terwijl het bord verborgen was, kent de schermhoogte niet.
-        if (modus === "liturgie" && laatsteTekst !== null) {
-          LiturgieRender.render(liturgieEl, laatsteTekst);
-        }
+        toonModus(data.modus);
+        bewaar(OPSLAG.modus, laatsteModus);
       } catch (err) {
-        console.error(err);
+        // Laatste stand blijft staan.
       }
     }
 
     async function laadLiturgie() {
       try {
         const data = await haal("/api/get-liturgie");
-        laatsteTekst = data.tekst || "Geen liturgie ingesteld";
-        LiturgieRender.render(liturgieEl, laatsteTekst);
+        const tekst = typeof data.tekst === "string" ? data.tekst : "";
+        toonTekst(tekst);
+        bewaar(OPSLAG.tekst, tekst);
       } catch (err) {
-        console.error(err);
-        toonFout(err instanceof TypeError
-          ? "Server niet bereikbaar. Open deze pagina via http://<server-ip>:<poort>/bord/ en controleer of de server draait."
-          : "Fout bij laden van de liturgie: " + err.message);
+        // Laatste stand blijft staan.
       }
     }
 
     async function laadAfbeelding() {
       try {
         const data = await haal("/api/get-image");
-        if (data && data.filename) {
-          afbeeldingEl.src = "/uploads/" + encodeURIComponent(data.filename) + "?t=" + Date.now();
-          afbeeldingEl.classList.remove("leeg");
-        } else {
-          afbeeldingEl.removeAttribute("src");
-          afbeeldingEl.classList.add("leeg");
-        }
+        const filename = (data && data.filename) || null;
+        toonAfbeelding(filename);
+        bewaar(OPSLAG.afbeelding, filename);
       } catch (err) {
-        console.error(err);
+        // Laatste stand blijft staan.
       }
     }
 
@@ -107,9 +145,14 @@
       laadAfbeelding();
     }
 
+    // Eerst de laatst bekende stand tonen (of een leeg bord), dan de server vragen.
+    toonTekst(lees(OPSLAG.tekst) ?? "");
+    toonAfbeelding(lees(OPSLAG.afbeelding));
+    toonModus(lees(OPSLAG.modus) || "liturgie");
     laadAlles();
 
-    // Direct verversen na een wijziging via Server-Sent Events, polling als vangnet.
+    // Direct verversen na een wijziging via Server-Sent Events. Valt de verbinding weg,
+    // dan probeert EventSource het zelf steeds opnieuw; bij "open" halen we alles op.
     const events = new EventSource("/api/events");
     events.addEventListener("scherm", laadScherm);
     events.addEventListener("liturgie", laadLiturgie);
@@ -120,6 +163,12 @@
     window.addEventListener("resize", () => {
       if (laatsteTekst !== null) LiturgieRender.render(liturgieEl, laatsteTekst);
     });
+
+    // Service worker: bewaart pagina, stijlen, font, laatste liturgie en afbeelding,
+    // zodat het bord ook na een herstart zonder server opkomt.
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js");
+    }
   </script>
 </body>
 

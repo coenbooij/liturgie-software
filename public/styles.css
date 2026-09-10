@@ -217,6 +217,15 @@ body {
   background: rgba(239, 68, 68, 0.18);
 }
 
+/* Desktop: de staande preview met knoppenrij in het midden van het brede scherm.
+   Op de telefoon vult de preview de breedte, dus daar verandert dit niets. */
+@media (min-width: 900px) {
+  .dashboard-layout {
+    align-items: center;
+    padding: 20px;
+  }
+}
+
 /* ---------- Dashboard: knoppenrij ---------- */
 
 .dashboard-panel {
@@ -488,6 +497,18 @@ body {
   display: flex;
   flex-direction: column;
   gap: 28px;
+}
+
+/* Desktop: iets meer lucht boven de knoppen */
+@media (min-width: 900px) {
+  .start-kop {
+    padding: 28px 16px 20px;
+  }
+
+  .start-main {
+    padding-top: 36px;
+    gap: 32px;
+  }
 }
 
 .start-blok {

@@ -147,6 +147,13 @@
     input[type="file"] {
       display: none;
     }
+
+    /* Desktop: inhoud gecentreerd in een kolom van maximaal 760px */
+    @media (min-width: 900px) {
+      body {
+        padding: 20px max(20px, calc((100% - 760px) / 2));
+      }
+    }
   </style>
 </head>
 <body>
