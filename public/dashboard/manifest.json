@@ -1,0 +1,17 @@
+{
+  "id": "/dashboard/",
+  "name": "Liturgie bewerken",
+  "short_name": "Liturgie",
+  "start_url": "/dashboard/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0f1a",
+  "theme_color": "#c89154",
+  "description": "Liturgie op het bord bewerken",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

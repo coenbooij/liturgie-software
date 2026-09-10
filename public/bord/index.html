@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bord | Liturgie Digitaal</title>
+  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    /* Het bord toont de liturgie of de afbeelding, afhankelijk van de modus. */
+    body.modus-afbeelding {
+      background: #000;
+    }
+
+    body.modus-afbeelding .liturgie-container,
+    body.modus-liturgie #afbeelding {
+      display: none;
+    }
+
+    #afbeelding {
+      position: absolute;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      cursor: none;
+    }
+
+    #afbeelding.leeg {
+      display: none;
+    }
+  </style>
+</head>
+
+<body class="modus-liturgie">
+  <div class="liturgie-container">
+    <div id="liturgie" class="liturgie-tekst">
+      Liturgie wordt geladen...
+    </div>
+  </div>
+
+  <img id="afbeelding" class="leeg" alt="" />
+
+  <script src="/liturgie-render.js"></script>
+  <script>
+    const liturgieEl = document.getElementById("liturgie");
+    const afbeeldingEl = document.getElementById("afbeelding");
+    let laatsteTekst = null;
+
+    function toonFout(tekst) {
+      liturgieEl.textContent = tekst;
+    }
+
+    async function haal(pad) {
+      const res = await fetch(pad, { cache: "no-store" });
+      if (!res.ok) throw new Error(`${pad}: ${res.status}`);
+      return res.json();
+    }
+
+    async function laadScherm() {
+      try {
+        const data = await haal("/api/get-scherm");
+        const modus = data.modus === "afbeelding" ? "afbeelding" : "liturgie";
+        document.body.classList.toggle("modus-liturgie", modus === "liturgie");
+        document.body.classList.toggle("modus-afbeelding", modus === "afbeelding");
+        // Opnieuw renderen: een render terwijl het bord verborgen was, kent de schermhoogte niet.
+        if (modus === "liturgie" && laatsteTekst !== null) {
+          LiturgieRender.render(liturgieEl, laatsteTekst);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function laadLiturgie() {
+      try {
+        const data = await haal("/api/get-liturgie");
+        laatsteTekst = data.tekst || "Geen liturgie ingesteld";
+        LiturgieRender.render(liturgieEl, laatsteTekst);
+      } catch (err) {
+        console.error(err);
+        toonFout(err instanceof TypeError
+          ? "Server niet bereikbaar. Open deze pagina via http://<server-ip>:<poort>/bord/ en controleer of de server draait."
+          : "Fout bij laden van de liturgie: " + err.message);
+      }
+    }
+
+    async function laadAfbeelding() {
+      try {
+        const data = await haal("/api/get-image");
+        if (data && data.filename) {
+          afbeeldingEl.src = "/uploads/" + encodeURIComponent(data.filename) + "?t=" + Date.now();
+          afbeeldingEl.classList.remove("leeg");
+        } else {
+          afbeeldingEl.removeAttribute("src");
+          afbeeldingEl.classList.add("leeg");
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function laadAlles() {
+      laadScherm();
+      laadLiturgie();
+      laadAfbeelding();
+    }
+
+    laadAlles();
+
+    // Direct verversen na een wijziging via Server-Sent Events, polling als vangnet.
+    const events = new EventSource("/api/events");
+    events.addEventListener("scherm", laadScherm);
+    events.addEventListener("liturgie", laadLiturgie);
+    events.addEventListener("image", laadAfbeelding);
+    events.addEventListener("open", laadAlles);
+    setInterval(laadAlles, 30000);
+
+    window.addEventListener("resize", () => {
+      if (laatsteTekst !== null) LiturgieRender.render(liturgieEl, laatsteTekst);
+    });
+  </script>
+</body>
+
+</html>

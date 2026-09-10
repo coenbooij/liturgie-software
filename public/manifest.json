@@ -1,9 +1,27 @@
 {
-  "name": "Liturgie Software",
-  "short_name": "Liturgie",
-  "start_url": "/index.html",
+  "id": "/",
+  "name": "Liturgie Digitaal",
+  "short_name": "Liturgie Digitaal",
+  "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#3367D6",
-  "description": "Liturgie Software PWA"
+  "background_color": "#c89154",
+  "theme_color": "#c89154",
+  "description": "Digitaal liturgiebord voor kerkdiensten",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }

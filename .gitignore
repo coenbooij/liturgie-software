@@ -1,0 +1,12 @@
+node_modules/
+
+# Lokale configuratie (wachtwoord, poort). Zie config.example.json.
+config.json
+
+# Runtime-data van de kerk zelf
+data/liturgie.json
+data/image.json
+data/scherm.json
+public/uploads/
+
+.DS_Store

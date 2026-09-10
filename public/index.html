@@ -2,27 +2,115 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#3367D6">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#c89154">
   <link rel="manifest" href="/manifest.json">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <title>Startscherm</title>
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icon-180.png">
+  <title>Liturgie Digitaal</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
-<body class="dashboard-body">
-  <div class="dashboard-container">
-    <h1>Liturgie Software</h1>
-    <p>
-      Welkom! Kies hieronder waar je naartoe wilt gaan.
-    </p>
-    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-      <a href="/liturgie/index.html" class="button-link">Ga naar Liturgie</a>
-      <a href="/dashboard/index.html" class="button-link">Ga naar Dashboard</a>
-    </div>
-  </div>
+<body class="start-page">
+  <header class="start-kop">
+    <div class="liturgie-tekst start-titel" id="titel"></div>
+  </header>
+
+  <main class="start-main">
+    <section class="start-blok">
+      <h2>Het bord toont</h2>
+      <div class="schakelaar" id="schakelaar" role="group" aria-label="Het bord toont">
+        <button type="button" data-modus="liturgie">Liturgie</button>
+        <button type="button" data-modus="afbeelding">Afbeelding</button>
+      </div>
+    </section>
+
+    <section class="start-blok">
+      <h2>Beheer</h2>
+      <a href="/dashboard/" class="start-knop primair">Liturgie bewerken</a>
+      <a href="/dashboard/image.html" class="start-knop">Afbeelding instellen</a>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status"></div>
+
+  <script src="/liturgie-render.js"></script>
+  <script src="/dashboard/auth.js"></script>
   <script>
+    // Titel in letterbord-stijl
+    document.getElementById("titel").innerHTML = ["Liturgie", "Digitaal"]
+      .map((regel) => '<div class="liturgie-line">' + LiturgieRender.styleLineContent(regel) + "</div>")
+      .join("");
+
+    const schakelaar = document.getElementById("schakelaar");
+    const knoppen = Array.from(schakelaar.querySelectorAll("button"));
+    const toastEl = document.getElementById("toast");
+    let toastTimer = null;
+    let huidigeModus = null;
+
+    function showStatus(text, isError) {
+      clearTimeout(toastTimer);
+      toastEl.textContent = text;
+      toastEl.className = "toast show " + (isError ? "error" : "ok");
+      toastTimer = setTimeout(() => toastEl.classList.remove("show"), isError ? 5000 : 2500);
+    }
+
+    function toonModus(modus) {
+      huidigeModus = modus;
+      for (const knop of knoppen) {
+        knop.classList.toggle("actief", knop.dataset.modus === modus);
+      }
+    }
+
+    async function laadModus() {
+      try {
+        const res = await fetch("/api/get-scherm", { cache: "no-store" });
+        const data = await res.json();
+        toonModus(data.modus === "afbeelding" ? "afbeelding" : "liturgie");
+      } catch (err) {
+        console.error(err);
+        showStatus("Server niet bereikbaar.", true);
+      }
+    }
+
+    async function zetModus(modus) {
+      try {
+        const res = await fetch("/api/set-scherm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...LiturgieAuth.authHeaders() },
+          body: JSON.stringify({ modus })
+        });
+        if (res.status === 401) {
+          LiturgieAuth.forget();
+          LiturgieAuth.ensureAuth(() => zetModus(modus));
+          return;
+        }
+        const data = await res.json();
+        if (data.ok) {
+          toonModus(modus);
+          showStatus(modus === "liturgie" ? "Bord toont de liturgie" : "Bord toont de afbeelding");
+        } else {
+          showStatus(data.error || "Schakelen mislukt.", true);
+        }
+      } catch (err) {
+        console.error(err);
+        showStatus("Server niet bereikbaar.", true);
+      }
+    }
+
+    schakelaar.addEventListener("click", (e) => {
+      const knop = e.target.closest("button");
+      if (!knop || knop.dataset.modus === huidigeModus) return;
+      LiturgieAuth.ensureAuth(() => zetModus(knop.dataset.modus));
+    });
+
+    laadModus();
+
+    // Schakelaar bijwerken als iemand anders schakelt
+    const events = new EventSource("/api/events");
+    events.addEventListener("scherm", laadModus);
+
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
+      window.addEventListener('load', function () {
         navigator.serviceWorker.register('/sw.js');
       });
     }

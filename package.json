@@ -1,13 +1,12 @@
 {
-  "name": "liturgie-software",
-  "version": "1.0.0",
-  "description": "Liturgie display software voor kerkdiensten",
+  "name": "liturgie-digitaal",
+  "version": "1.1.0",
+  "description": "Digitaal liturgiebord voor kerkdiensten",
   "license": "ISC",
   "author": "Coen Booij",
   "type": "commonjs",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
   "dependencies": {
