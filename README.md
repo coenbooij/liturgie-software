@@ -110,6 +110,10 @@ De maten (fontgrootte, blokhoogte, negatieve marges om blokjes uit te lijnen) st
 
 "header" betekent: `X-Wachtwoord: <wachtwoord>`. Fouten geven een 4xx/5xx met `{ "error": "..." }`.
 
+## Raspberry Pi als bord
+
+Hoe een Pi aan een tv wordt ingericht als bord (autologin, Chromium-kiosk onder cage/Wayland, staand, service worker over http) staat in [pi/README.md](pi/README.md). Het kioskscript staat in `pi/kiosk-wayland.sh`.
+
 ## Bord zonder server
 
 Elk bord is een tv met een Raspberry Pi die `http://<server-ip>:<poort>/bord/` fullscreen opent. Het bord moet blijven werken als de server of het netwerk wegvalt:
